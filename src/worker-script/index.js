@@ -189,9 +189,10 @@ const loadLanguageFromPath = async ({
     if (typeof _lang === 'string') {
       let path = null;
 
-      if (isURL(langPath) || langPath.startsWith('moz-extension://') || langPath.startsWith('chrome-extension://') || langPath.startsWith('file://')) { /** When langPath is an URL */
-        path = langPath;
-      }
+      path = langPath;
+      // if (isURL(langPath) || langPath.startsWith('moz-extension://') || langPath.startsWith('chrome-extension://') || langPath.startsWith('file://')) { /** When langPath is an URL */
+      //   path = langPath;
+      // }
       const resp = await (isWebWorker ? fetch : adapter.fetch)(`${path}`);
       data = await resp.arrayBuffer();
 
