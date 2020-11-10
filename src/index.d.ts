@@ -20,6 +20,7 @@ declare namespace Tesseract {
     removeText(path: string, jobId?: string): Promise<ConfigResult>
     FS(method: string, args: any[], jobId?: string): Promise<ConfigResult>
     loadLanguage(langs?: string, jobId?: string): Promise<ConfigResult>
+    loadLanguageFromPath(langs?: string, jobId?: string): Promise<ConfigResult>
     initialize(langs?: string, oem?: OEM, jobId?: string): Promise<ConfigResult>
     setParameters(params: Partial<WorkerParams>, jobId?: string): Promise<ConfigResult>
     recognize(image: ImageLike, options?: Partial<RecognizeOptions>, jobId?: string): Promise<RecognizeResult>
