@@ -99,13 +99,13 @@ module.exports = (_options = {}) => {
     }))
   );
 
-    const loadLanguageFromPath = (langs = 'eng', jobId) => (
-        startJob(createJob({
-            id: jobId,
-            action: 'loadLanguageFromPath',
-            payload: { langs, options },
-        }))
-    );
+  const loadLanguageFromPath = (langs = 'eng', jobId) => (
+    startJob(createJob({
+      id: jobId,
+      action: 'loadLanguageFromPath',
+      payload: { langs, options },
+    }))
+  );
 
   const initialize = (langs = 'eng', oem = defaultOEM, jobId) => (
     startJob(createJob({
