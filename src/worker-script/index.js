@@ -152,6 +152,102 @@ const loadLanguage = async ({
   }
 };
 
+const loadLanguageFromPath = async ({
+  workerId,
+  payload: {
+    langs,
+    options: {
+      langPath,
+      // dataPath,
+      // cachePath,
+      // cacheMethod,
+      // gzip = true,
+    },
+  },
+},
+  res) => {
+  const loadAndGunzipFile = async (_lang) => {
+    // const lang = typeof _lang === 'string' ? _lang : _lang.code;
+    // const readCache = ['refresh', 'none'].includes(cacheMethod)
+    //     ? () => Promise.resolve()
+    //     : adapter.readCache;
+
+    let data = null;
+
+    // try {
+    //   const _data = await readCache(`${cachePath || '.'}/${lang}.traineddata`);
+    //   if (typeof _data !== 'undefined') {
+    //     log(`[${workerId}]: Load ${lang}.traineddata from cache`);
+    //     res.progress({ workerId, status: 'loading language traineddata (from cache)',
+    //     progress: 0.5 });
+    //     data = _data;
+    //   } else {
+    //     throw Error('Not found in cache');
+    //   }
+    // } catch (e) {
+    //   log(`[${workerId}]: Load ${lang}.traineddata from ${langPath}`);
+    if (typeof _lang === 'string') {
+      let path = null;
+
+      if (isURL(langPath) || langPath.startsWith('moz-extension://') || langPath.startsWith('chrome-extension://') || langPath.startsWith('file://')) { /** When langPath is an URL */
+        path = langPath;
+      }
+      const resp = await (isWebWorker ? fetch : adapter.fetch)(`${path}`);
+      data = await resp.arrayBuffer();
+
+      // if (path !== null) {
+      // } else {
+      //   data = await adapter.readCache(`${langPath}/${lang}.traineddata${gzip ? '.gz' : ''}`);
+      // }
+    } else {
+      data = _lang.data; // eslint-disable-line
+    }
+    // }
+
+    data = new Uint8Array(data);
+
+    // const type = fileType(data);
+    // if (typeof type !== 'undefined' && type.mime === 'application/gzip') {
+    //   data = adapter.gunzip(data);
+    // }
+
+    // if (TessModule) {
+    //   if (dataPath) {
+    //     try {
+    //       TessModule.FS.mkdir(dataPath);
+    //     } catch (err) {
+    //       res.reject(err.toString());
+    //     }
+    //   }
+    //   TessModule.FS.writeFile(`${dataPath || '.'}/${lang}.traineddata`, data);
+    // }
+
+    // if (['write', 'refresh', undefined].includes(cacheMethod)) {
+    //   await adapter.writeCache(`${cachePath || '.'}/${lang}.traineddata`, data);
+    // }
+
+    return Promise.resolve(data);
+  };
+
+  res.progress({ workerId, status: 'loading language traineddata', progress: 0 });
+  try {
+    await Promise.all((typeof langs === 'string' ? langs.split('+') : langs).map(loadAndGunzipFile));
+
+    res.progress({ workerId, status: 'loaded language traineddata', progress: 1 });
+    res.resolve(langs);
+  } catch (err) {
+    if (isWebWorker && err instanceof DOMException) {
+      /*
+       * For some reason google chrome throw DOMException in loadLang,
+       * while other browser is OK, for now we ignore this exception
+       * and hopefully to find the root cause one day.
+       */
+    } else {
+      res.reject(err.toString());
+    }
+  }
+};
+
 const setParameters = ({ payload: { params: _params } }, res) => {
   Object.keys(_params)
     .filter((k) => !k.startsWith('tessjs_'))
@@ -288,6 +384,7 @@ exports.dispatchHandlers = (packet, send) => {
       load,
       FS,
       loadLanguage,
+      loadLanguageFromPath,
       initialize,
       setParameters,
       recognize,
